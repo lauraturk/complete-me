@@ -36,13 +36,26 @@ export default class CompleteMe {
     return this.countWords = this.dictionary.length
   }
 
-  suggest() {
+  suggest(currentNode, input, suggestions) {
+    // eval(locus)
+    if (currentNode.isWord) {
+      suggestions.push(input)
+    }
+
+    let keys = Object.keys(currentNode.children)
+
+    keys.forEach( key => {
+      let nextNode = currentNode.children[key]
+
+      this.suggest(nextNode, input + key, suggestions)
+    });
+    return suggestions;
 
   }
 
-  findNode(input) {
-
+  findWordSuggestion(input) {
     let inputArray = input.split('');
+    let suggestions = []
 
     let currentChar = inputArray.shift()
     let currentNode = this.root;
@@ -52,7 +65,25 @@ export default class CompleteMe {
       currentNode = currentNode.children[currentChar]
       currentChar = inputArray.shift()
     }
-    return currentNode
+    return this.suggest(currentNode, input, suggestions)
+
+  }
+
+  findNode(input) {
+
+    let inputArray = input.split('');
+    let suggestions = []
+
+    let currentChar = inputArray.shift()
+    let currentNode = this.root;
+
+
+    while (currentNode.children[currentChar]) {
+      currentNode = currentNode.children[currentChar]
+      currentChar = inputArray.shift()
+    }
+
+    return currentNode;
 
   }
 }

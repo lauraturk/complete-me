@@ -79,6 +79,33 @@ describe('Trie', () => {
     assert.equal(foundNode.data, 'n')
   })
 
+  it('should suggest a word', () => {
+    completeMe.insert('bananas')
+    completeMe.insert('brains')
+    completeMe.insert('monkey')
+    completeMe.insert('monk')
+
+    let suggestion = completeMe.findWordSuggestion('mon')
+    let suggestion2 = completeMe.findWordSuggestion('b')
+
+    assert.deepEqual(suggestion, ['monk', 'monkey'])
+    assert.deepEqual(suggestion2, ['bananas', 'brains'])
+  })
+
+  it('should suggest a word', () => {
+    completeMe.insert('shirt')
+    completeMe.insert('shirtsleeve')
+    completeMe.insert('shit')
+    completeMe.insert('happy')
+    completeMe.insert('happiness')
+
+    let suggestion = completeMe.findWordSuggestion('shi')
+    let suggestion2 = completeMe.findWordSuggestion('happ')
+
+    assert.deepEqual(suggestion, ['shirt', 'shirtsleeve', 'shit'])
+    assert.deepEqual(suggestion2, ['happy', 'happiness'])
+  })
+
 
 
 
