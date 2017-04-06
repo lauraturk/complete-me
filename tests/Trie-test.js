@@ -1,15 +1,25 @@
 import { expect, assert } from 'chai';
 import CompleteMe from '../scripts/Trie'
-// import Node from '../scripts/Node'
+
+const fs = require('fs');
+const text = "/usr/share/dict/words"
+let dictionary = fs.readFileSync(text).toString().trim().split('\n')
 
 describe('Trie', () => {
 
-  const completeMe = new CompleteMe ()
-
   it('should instantiate a new Trie', () => {
+    let completeMe = new CompleteMe ()
 
     expect(completeMe).to.be.a('object');
   })
+});
+
+describe('Test trie', () => {
+  let completeMe;
+
+  beforeEach(function () {
+    completeMe = new CompleteMe ()
+  });
 
   it('should have a root node with null data', () => {
 
@@ -27,12 +37,6 @@ describe('Trie', () => {
     expect(completeMe.root.isWord).to.equal(false)
   })
 
-  it.skip('should take a string and create an array of single letters', () => {
-    let wordArray = completeMe.insert('cat')
-
-    expect(wordArray).to.deep.equal(['c', 'a', 't'])
-  })
-
   it('should create a child node of root with the first letter', () => {
     completeMe.insert('cat')
 
@@ -40,6 +44,7 @@ describe('Trie', () => {
   })
 
   it('should create a second child node after the first', () => {
+    completeMe.insert('cat')
 
     expect(completeMe.root.children['c'].children).to.have.property('a')
   })
@@ -85,8 +90,8 @@ describe('Trie', () => {
     completeMe.insert('monkey')
     completeMe.insert('monk')
 
-    let suggestion = completeMe.findWordSuggestion('mon')
-    let suggestion2 = completeMe.findWordSuggestion('b')
+    let suggestion = completeMe.suggest('mon')
+    let suggestion2 = completeMe.suggest('b')
 
     assert.deepEqual(suggestion, ['monk', 'monkey'])
     assert.deepEqual(suggestion2, ['bananas', 'brains'])
@@ -99,14 +104,65 @@ describe('Trie', () => {
     completeMe.insert('happy')
     completeMe.insert('happiness')
 
-    let suggestion = completeMe.findWordSuggestion('shi')
-    let suggestion2 = completeMe.findWordSuggestion('happ')
+    let suggestion = completeMe.suggest('shi')
+    let suggestion2 = completeMe.suggest('happ')
 
     assert.deepEqual(suggestion, ['shirt', 'shirtsleeve', 'shit'])
     assert.deepEqual(suggestion2, ['happy', 'happiness'])
+  });
+});
+
+describe('Dictionary Test', () => {
+
+  let completeMe = new CompleteMe ()
+
+  it('should count all the words in the dictionary', () => {
+    completeMe.populate(dictionary)
+
+    assert.equal(completeMe.counter, 235886)
   })
 
+  it('should count the times a word is selected', () => {
+    completeMe.select('loq', 'loquacious')
+
+    let foundNode = completeMe.findNode('loquacious')
+
+    expect(foundNode.selectionCount).to.equal(1)
+  })
+
+  it('should be populated with all the piz words', () => {
+    let pizWords = completeMe.suggest('piz')
+
+    expect(pizWords.length).to.equal(5)
+    expect(pizWords).to.deep.equal(
+      ["pize", "pizza", "pizzeria", "pizzicato", "pizzle"])
+  })
+
+  it('should show my favorite word as the first suggestion', () => {
+    completeMe.select('ban', 'banal')
+    completeMe.select('qui', 'quixotic')
+
+    let suggestions = completeMe.suggest('ban')
+    let suggestions2 = completeMe.suggest('qui')
 
 
+    expect(suggestions[0]).to.deep.equal('banal')
+    expect(suggestions2[0]).to.deep.equal('quixotic')
+  })
 
+  it('should show words based on the times selected', () => {
+    completeMe.select('ban', 'banal')
+    completeMe.select('ban', 'banish')
+    completeMe.select('ban', 'banish')
+    completeMe.select('ban', 'banal')
+    completeMe.select('ban', 'bantamweight')
+    completeMe.select('ban', 'bandoleer')
+
+    let suggestion3 = completeMe.suggest('ban')
+
+    expect(suggestion3[0]).to.deep.equal('banal')
+    expect(suggestion3[1]).to.deep.equal('banish')
+    expect(suggestion3[2]).to.deep.equal('bandoleer')
+    expect(suggestion3[3]).to.deep.equal('bantamweight')
+  })
 })

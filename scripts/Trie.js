@@ -4,15 +4,12 @@ require('locus')
 export default class CompleteMe {
   constructor() {
     this.root = new Node(null)
-    this.dictionary = []
-    this.countWords;
+    this.counter = 0;
   }
 
   insert(word) {
     let wordArray = word.split('');
     let currentNode = this.root;
-
-    var dis = this;
 
     wordArray.forEach(letter => {
       let newNode = new Node(letter)
@@ -20,70 +17,70 @@ export default class CompleteMe {
       if (!currentNode.children[letter]) {
         currentNode.children[letter] = newNode;
       }
-
       currentNode = currentNode.children[letter]
-
-    });
+    })
 
     currentNode.isWord = true
-    this.count(word)
-
+    this.counter++;
   }
 
-  count(word) {
+  suggest(input) {
+    let suggestions = []
 
-    this.dictionary.push(word)
-    return this.countWords = this.dictionary.length
+    return this.suggestFindWord(this.findNode(input), input, suggestions)
   }
 
-  suggest(currentNode, input, suggestions) {
-    // eval(locus)
+  suggestFindWord(currentNode, input, suggestions) {
+    let sortedSuggestions;
+
     if (currentNode.isWord) {
-      suggestions.push(input)
+      suggestions.push({word: input,
+        selectionCount: currentNode.selectionCount})
     }
-
     let keys = Object.keys(currentNode.children)
 
     keys.forEach( key => {
       let nextNode = currentNode.children[key]
 
-      this.suggest(nextNode, input + key, suggestions)
+      this.suggestFindWord(nextNode, input + key, suggestions)
     });
-    return suggestions;
 
-  }
+    suggestions.sort( (a, b) =>
+      b.selectionCount - a.selectionCount
+    )
 
-  findWordSuggestion(input) {
-    let inputArray = input.split('');
-    let suggestions = []
-
-    let currentChar = inputArray.shift()
-    let currentNode = this.root;
-
-
-    while (currentNode.children[currentChar]) {
-      currentNode = currentNode.children[currentChar]
-      currentChar = inputArray.shift()
-    }
-    return this.suggest(currentNode, input, suggestions)
-
+    sortedSuggestions = suggestions.map(obj => {
+      return obj['word']
+    })
+    return sortedSuggestions;
   }
 
   findNode(input) {
-
-    let inputArray = input.split('');
-    let suggestions = []
-
+    let inputArray = input.split('')
     let currentChar = inputArray.shift()
-    let currentNode = this.root;
-
+    let currentNode = this.root
 
     while (currentNode.children[currentChar]) {
       currentNode = currentNode.children[currentChar]
       currentChar = inputArray.shift()
     }
+    return currentNode
+  }
 
-    return currentNode;
+  populate (dictionary) {
+    dictionary.forEach(word => {
+      this.insert(word)
+    })
+  }
 
+  select (input, selection) {
+    let suggestionArray = this.suggest(input)
+
+    let selectedWord = suggestionArray.find(word => {
+      return word === selection
+    })
+    let foundNode = this.findNode(selectedWord)
+
+    foundNode.selectionCount++
   }
 }
